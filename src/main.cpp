@@ -1,36 +1,35 @@
 #include <SFML/Graphics.hpp>
 #include <algorithm>
-#include <vector>
 #include <memory>
+#include <vector>
 
-using Block = std::unique_ptr<sf::RectangleShape>;
+using Block  = std::unique_ptr<sf::RectangleShape>;
 using Blocks = std::vector<Block>;
 
 void movePaddle(sf::RectangleShape& paddle, sf::Keyboard::Key key)
 {
-    float speed = 80.0f;
+    float speed           = 80.0f;
     sf::Vector2f position = paddle.getPosition();
     switch (key)
     {
-    case sf::Keyboard::A:
-        position.x -= speed;
-        break;
-    case sf::Keyboard::D:
-        position.x += speed;
-        break;
-    case sf::Keyboard::W:
-        position.y -= speed;
-        break;
-    case sf::Keyboard::S:
-        position.y += speed;
-        break;
-    default:
-        break;
+        case sf::Keyboard::A:
+        case sf::Keyboard::Left:
+            position.x -= speed;
+            break;
+        case sf::Keyboard::D:
+        case sf::Keyboard::Right:
+            position.x += speed;
+            break;
+        default:
+            break;
     }
     paddle.setPosition(position);
 }
 
-void moveBall(sf::CircleShape& ball, sf::Vector2f& velocity, const sf::RenderWindow& window, const sf::RectangleShape& paddle)
+void moveBall(sf::CircleShape& ball,
+              sf::Vector2f& velocity,
+              const sf::RenderWindow& window,
+              const sf::RectangleShape& paddle)
 {
     sf::Vector2f position = ball.getPosition();
     position.x += velocity.x;
@@ -84,8 +83,8 @@ int main()
     Blocks blocks;
     for (int i = 0; i < 8; i++)
     {
-        float x = (i % 4) * 250.0f + 100.0f;
-        float y = (i / 4) * 150.0f + 100.0f;
+        float x     = (i % 4) * 250.0f + 100.0f;
+        float y     = (i / 4) * 150.0f + 100.0f;
         Block block = std::make_unique<sf::RectangleShape>(sf::Vector2f(200.0f, 100.0f));
         block->setFillColor(sf::Color::Red);
         block->setPosition(sf::Vector2f(x, y));
