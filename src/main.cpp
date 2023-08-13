@@ -6,7 +6,7 @@
 using Block  = std::unique_ptr<sf::RectangleShape>;
 using Blocks = std::vector<Block>;
 
-void movePaddle(sf::RectangleShape& paddle, sf::Keyboard::Key key)
+void movePaddle(sf::RectangleShape& paddle, sf::Keyboard::Key key, sf::RenderWindow& window)
 {
     float speed           = 80.0f;
     sf::Vector2f position = paddle.getPosition();
@@ -14,11 +14,13 @@ void movePaddle(sf::RectangleShape& paddle, sf::Keyboard::Key key)
     {
         case sf::Keyboard::A:
         case sf::Keyboard::Left:
-            position.x -= speed;
+            position.x = position.x - speed > 0.0f ? position.x - speed : 0;
             break;
         case sf::Keyboard::D:
         case sf::Keyboard::Right:
-            position.x += speed;
+            position.x = position.x + speed < window.getSize().x - paddle.getSize().x
+                             ? position.x + speed
+                             : window.getSize().x - paddle.getSize().x;
             break;
         default:
             break;
@@ -107,7 +109,7 @@ int main()
                 }
                 else
                 {
-                    movePaddle(paddle, event.key.code);
+                    movePaddle(paddle, event.key.code, window);
                 }
             }
         }
