@@ -52,13 +52,26 @@ void moveBall(sf::CircleShape& ball,
     ball.setPosition(position);
 }
 
-void isCollide(const sf::CircleShape& ball, Blocks& blocks)
+void isCollide(const sf::CircleShape& ball, Blocks& blocks, sf::Vector2f& velocity)
 {
     for (auto itr = blocks.begin(); itr != blocks.end();)
     {
         Block& block = *itr;
         if (ball.getGlobalBounds().intersects(block->getGlobalBounds()))
         {
+            sf::Vector2f blockPosition = block->getPosition();
+            sf::Vector2f blockSize = block->getSize();
+            sf::Vector2f ballPosition = ball.getPosition();
+
+            if ((blockPosition.x <= ballPosition.x) && (ballPosition.x <= blockPosition.x + blockSize.x))
+            {
+                velocity.y *= -1;
+            }
+            else
+            {
+                velocity.x *= -1;
+            }
+
             itr = blocks.erase(itr);
         }
         else
@@ -116,7 +129,7 @@ int main()
 
         moveBall(ball, velocity, window, paddle);
 
-        isCollide(ball, blocks);
+        isCollide(ball, blocks, velocity);
 
         window.clear();
         window.draw(paddle);
