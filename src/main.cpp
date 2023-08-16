@@ -14,7 +14,7 @@ enum class GameState {
 
 void movePaddle(sf::RectangleShape& paddle, sf::Keyboard::Key key, sf::RenderWindow& window, GameState& gameState)
 {
-    if (gameState == GameState::GAME_OVER)
+    if (gameState != GameState::PLAY)
         return;
 
     float speed           = 80.0f;
