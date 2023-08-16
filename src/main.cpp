@@ -141,7 +141,6 @@ int main()
     text.setFont(font);
     text.setFillColor(sf::Color::Yellow);
     text.setPosition(window.getSize().x / 2, window.getSize().y / 2);
-    text.setString("Game Over!");
 
     GameState gameState = GameState::PLAY;
 
@@ -183,11 +182,13 @@ int main()
         if (gameState == GameState::CLEAR)
         {
             text.setString("Clear!");
+            text.setOrigin(text.getGlobalBounds().width / 2, text.getGlobalBounds().height / 2);
             window.draw(text);
         }
         else if (gameState == GameState::GAME_OVER)
         {
             text.setString("Game Over");
+            text.setOrigin(text.getGlobalBounds().width / 2, text.getGlobalBounds().height / 2);
             window.draw(text);
         }
 
