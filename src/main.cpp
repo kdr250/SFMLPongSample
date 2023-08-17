@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-using Block  = std::unique_ptr<sf::RectangleShape>;
+using Block = std::unique_ptr<sf::RectangleShape>;
 using Blocks = std::vector<Block>;
 
 enum class GameState {
@@ -12,47 +12,62 @@ enum class GameState {
     CLEAR
 };
 
-void movePaddle(sf::RectangleShape& paddle, sf::Keyboard::Key key, sf::RenderWindow& window, GameState& gameState)
+void handleInput(float& paddleSpeed, sf::Keyboard::Key key, const GameState& gameState)
 {
     if (gameState != GameState::PLAY)
         return;
 
-    float speed           = 80.0f;
-    sf::Vector2f position = paddle.getPosition();
     switch (key)
     {
-        case sf::Keyboard::A:
-        case sf::Keyboard::Left:
-            position.x = position.x - speed > 0.0f ? position.x - speed : 0;
-            break;
-        case sf::Keyboard::D:
-        case sf::Keyboard::Right:
-            position.x = position.x + speed < window.getSize().x - paddle.getSize().x
-                             ? position.x + speed
-                             : window.getSize().x - paddle.getSize().x;
-            break;
-        default:
-            break;
+    case sf::Keyboard::A:
+    case sf::Keyboard::Left:
+        paddleSpeed = -8.0f;
+        break;
+    case sf::Keyboard::D:
+    case sf::Keyboard::Right:
+        paddleSpeed = 8.0f;
+        break;
+    default:
+        paddleSpeed = 0.0f;
+        break;
+    }
+}
+
+void movePaddle(sf::RectangleShape& paddle, const float& paddleSpeed, sf::RenderWindow& window, GameState& gameState)
+{
+    if (gameState != GameState::PLAY)
+        return;
+
+    sf::Vector2f position = paddle.getPosition();
+    if (paddleSpeed < 0.0f)
+    {
+        position.x = position.x + paddleSpeed > 0.0f ? position.x + paddleSpeed : 0;
+    }
+    else if (paddleSpeed > 0.0f)
+    {
+        position.x = position.x + paddleSpeed < window.getSize().x - paddle.getSize().x
+            ? position.x + paddleSpeed
+            : window.getSize().x - paddle.getSize().x;
     }
     paddle.setPosition(position);
 }
 
 void moveBall(sf::CircleShape& ball,
-              sf::Vector2f& velocity,
+              sf::Vector2f& ballVelocity,
               GameState& gameState,
               const sf::RenderWindow& window,
               const sf::RectangleShape& paddle)
 {
     sf::Vector2f position = ball.getPosition();
-    position.x += velocity.x;
-    position.y += velocity.y;
+    position.x += ballVelocity.x;
+    position.y += ballVelocity.y;
     if (position.x <= 0.0f || position.x >= window.getSize().x)
     {
-        velocity.x *= -1;
+        ballVelocity.x *= -1;
     }
     if (position.y <= 0.0f)
     {
-        velocity.y *= -1;
+        ballVelocity.y *= -1;
     }
     if (position.y >= window.getSize().y)
     {
@@ -61,12 +76,12 @@ void moveBall(sf::CircleShape& ball,
     if (ball.getGlobalBounds().intersects(paddle.getGlobalBounds()))
     {
         position.y -= ball.getRadius();
-        velocity.y *= -1;
+        ballVelocity.y *= -1;
     }
     ball.setPosition(position);
 }
 
-void isCollide(const sf::CircleShape& ball, Blocks& blocks, sf::Vector2f& velocity, GameState& gameState)
+void isCollide(const sf::CircleShape& ball, Blocks& blocks, sf::Vector2f& ballVelocity, GameState& gameState)
 {
     for (auto itr = blocks.begin(); itr != blocks.end();)
     {
@@ -79,11 +94,11 @@ void isCollide(const sf::CircleShape& ball, Blocks& blocks, sf::Vector2f& veloci
 
             if ((blockPosition.x <= ballPosition.x) && (ballPosition.x <= blockPosition.x + blockSize.x))
             {
-                velocity.y *= -1;
+                ballVelocity.y *= -1;
             }
             else
             {
-                velocity.x *= -1;
+                ballVelocity.x *= -1;
             }
 
             itr = blocks.erase(itr);
@@ -100,14 +115,16 @@ void isCollide(const sf::CircleShape& ball, Blocks& blocks, sf::Vector2f& veloci
 }
 
 void update(sf::CircleShape& ball,
-              sf::Vector2f& velocity,
+              sf::Vector2f& ballVelocity,
               Blocks& blocks,
               GameState& gameState,
-              const sf::RenderWindow& window,
-              const sf::RectangleShape& paddle)
+              sf::RenderWindow& window,
+              sf::RectangleShape& paddle,
+              const float& paddleSpeed)
 {
-    moveBall(ball, velocity, gameState, window, paddle);
-    isCollide(ball, blocks, velocity, gameState);
+    movePaddle(paddle, paddleSpeed, window, gameState);
+    moveBall(ball, ballVelocity, gameState, window, paddle);
+    isCollide(ball, blocks, ballVelocity, gameState);
 }
 
 int main()
@@ -118,17 +135,18 @@ int main()
     sf::RectangleShape paddle(sf::Vector2f(100.0f, 10.0f));
     paddle.setFillColor(sf::Color::Blue);
     paddle.setPosition(400, 700);
+    float paddleSpeed = 0.0f;
 
     sf::CircleShape ball(10.0f);
     ball.setFillColor(sf::Color::Green);
     ball.setPosition(300, 500);
-    sf::Vector2f velocity(5.0f, 5.0f);
+    sf::Vector2f ballVelocity(5.0f, 5.0f);
 
     Blocks blocks;
     for (int i = 0; i < 8; i++)
     {
-        float x     = (i % 4) * 250.0f + 100.0f;
-        float y     = (i / 4) * 150.0f + 100.0f;
+        float x = (i % 4) * 250.0f + 100.0f;
+        float y = (i / 4) * 150.0f + 100.0f;
         Block block = std::make_unique<sf::RectangleShape>(sf::Vector2f(200.0f, 100.0f));
         block->setFillColor(sf::Color::Red);
         block->setPosition(sf::Vector2f(x, y));
@@ -160,14 +178,18 @@ int main()
                 }
                 else
                 {
-                    movePaddle(paddle, event.key.code, window, gameState);
+                    handleInput(paddleSpeed, event.key.code, gameState);
                 }
+            }
+            else
+            {
+                paddleSpeed = 0.0f;
             }
         }
 
         if (gameState == GameState::PLAY)
         {
-            update(ball, velocity, blocks, gameState, window, paddle);
+            update(ball, ballVelocity, blocks, gameState, window, paddle, paddleSpeed);
         }
 
         window.clear();
