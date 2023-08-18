@@ -21,11 +21,11 @@ void handleInput(float& paddleSpeed, sf::Keyboard::Key key, const GameState& gam
     {
     case sf::Keyboard::A:
     case sf::Keyboard::Left:
-        paddleSpeed = -8.0f;
+        paddleSpeed = -10.0f;
         break;
     case sf::Keyboard::D:
     case sf::Keyboard::Right:
-        paddleSpeed = 8.0f;
+        paddleSpeed = 10.0f;
         break;
     default:
         paddleSpeed = 0.0f;
@@ -75,7 +75,7 @@ void moveBall(sf::CircleShape& ball,
     }
     if (ball.getGlobalBounds().intersects(paddle.getGlobalBounds()))
     {
-        position.y -= ball.getRadius();
+        position.y -= ball.getRadius() * 2.0f;
         ballVelocity.y *= -1;
     }
     ball.setPosition(position);
@@ -94,11 +94,11 @@ void isCollide(const sf::CircleShape& ball, Blocks& blocks, sf::Vector2f& ballVe
 
             if ((blockPosition.x <= ballPosition.x) && (ballPosition.x <= blockPosition.x + blockSize.x))
             {
-                ballVelocity.y *= -1;
+                ballVelocity.y *= -1.3f;
             }
             else
             {
-                ballVelocity.x *= -1;
+                ballVelocity.x *= -1.3f;
             }
 
             itr = blocks.erase(itr);
